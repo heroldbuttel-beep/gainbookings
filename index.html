@@ -25,6 +25,12 @@
     .faq{background:var(--cream)}.faq-grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:70px}.faq-list{border-top:1px solid #dcd8cf}details{border-bottom:1px solid #dcd8cf;padding:20px 0}summary{cursor:pointer;list-style:none;font:700 18px/1.35 "Manrope",sans-serif;padding-right:36px;position:relative}summary::-webkit-details-marker{display:none}summary:after{content:"+";position:absolute;right:4px;top:-2px;color:#15826d;font-size:26px}details[open] summary:after{content:"−"}details p{color:var(--muted);margin:13px 42px 2px 0}
     .cta{padding:96px 0;background:var(--navy);color:#fff}.contact-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:70px;align-items:start}.contact-copy{position:sticky;top:35px}.contact-copy .kicker{color:var(--mint)}.contact-copy h2{font-size:clamp(36px,4.5vw,56px);letter-spacing:-.04em}.contact-copy>p{color:#b7c5d7;font-size:18px;margin:18px 0 28px}.call-benefits{display:grid;gap:12px}.call-benefits span{display:flex;align-items:center;gap:10px;color:#dbe5f1}.contact-form{background:#fff;color:var(--ink);padding:36px;border-radius:18px;box-shadow:0 28px 70px rgba(0,0,0,.25)}.contact-form h3{font-size:27px;margin-bottom:7px}.form-intro{color:var(--muted);margin:0 0 25px}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{margin-bottom:17px}.field label{display:block;font-size:14px;font-weight:700;margin-bottom:7px}.field input,.field select,.field textarea{width:100%;min-height:49px;border:1px solid #ccd5dc;border-radius:8px;background:#fff;padding:12px 13px;color:var(--ink);font:16px/1.35 "DM Sans",sans-serif}.field textarea{min-height:105px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid rgba(76,224,193,.25);border-color:#12997e}.consent{display:flex;gap:10px;align-items:flex-start;color:var(--muted);font-size:13px;margin:3px 0 20px}.consent input{margin-top:4px}.consent a{color:#087765}.contact-form .btn{width:100%;font-size:16px}.form-note{text-align:center;color:#7b8794;font-size:12px;margin:12px 0 0}
     footer{padding:48px 0 30px}.footer-main{display:flex;align-items:center;justify-content:space-between;gap:25px;padding-bottom:30px;border-bottom:1px solid var(--line)}footer .logo-crop{width:230px}.legal-links{display:flex;gap:20px;flex-wrap:wrap}.legal-links a{color:#667589;text-decoration:none}.legal-links a:hover{color:var(--navy)}.footer-bottom{display:flex;justify-content:space-between;gap:15px;color:#7a8796;font-size:13px;padding-top:22px}
+
+    .before-after{background:#fff}.ba-grid{display:grid;grid-template-columns:1fr 70px 1fr;gap:18px;align-items:stretch}.ba-card{border-radius:18px;padding:34px;border:1px solid var(--line);background:#f8fafc}.ba-card.after{background:var(--navy);border-color:var(--navy);color:#fff}.ba-card h3{font-size:27px;margin:16px 0 20px}.ba-card p{margin:0 0 22px;color:var(--muted)}.ba-card.after p{color:#c7d4e2}.ba-list{display:grid;gap:12px;margin:0;padding:0;list-style:none}.ba-list li{display:flex;gap:10px;align-items:flex-start}.ba-list li:before{content:"×";font-weight:900;color:#c45a42}.ba-card.after .ba-list li:before{content:"✓";color:var(--mint)}.ba-arrow{display:grid;place-items:center;font:800 25px/1 "Manrope",sans-serif;color:var(--petrol)}
+    .mobile-flow{background:var(--cream)}.flow-track{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;position:relative}.flow-card{background:#fff;border:1px solid #e3e0d8;border-radius:16px;padding:26px;position:relative}.flow-card:not(:last-child):after{content:"→";position:absolute;right:-20px;top:50%;transform:translateY(-50%);z-index:2;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:var(--mint);font-weight:800}.flow-icon{width:44px;height:44px;border-radius:12px;background:#e8fbf6;color:#087765;display:grid;place-items:center;font:800 16px/1 "Manrope",sans-serif;margin-bottom:25px}.flow-card h3{font-size:20px;margin-bottom:8px}.flow-card p{margin:0;color:var(--muted);font-size:14px}.flow-caption{text-align:center;margin:25px auto 0;max-width:720px;color:#59677a;font-weight:600}
+    .ai-ready{background:#fff}.ai-ready-box{display:grid;grid-template-columns:.9fr 1.1fr;gap:55px;align-items:center;background:linear-gradient(135deg,#f7f4ed,#f8fbff);border:1px solid #e1e5e8;border-radius:22px;padding:45px;overflow:hidden}.ai-ready-box h2{font-size:clamp(34px,4vw,50px);letter-spacing:-.035em;margin:14px 0 16px}.ai-ready-box>div>p{color:var(--muted);font-size:17px;margin:0}.ready-points{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ready-point{background:#fff;border:1px solid #e0e6eb;border-radius:12px;padding:18px}.ready-point strong{display:block;margin-bottom:5px}.ready-point span{color:var(--muted);font-size:13px}.ready-badge{display:inline-flex;padding:7px 11px;border-radius:99px;background:var(--navy);color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    @media(max-width:900px){.ba-grid{grid-template-columns:1fr}.ba-arrow{display:none}.flow-track{grid-template-columns:1fr 1fr}.flow-card:not(:last-child):after{display:none}.ai-ready-box{grid-template-columns:1fr}}
+    @media(max-width:600px){.ba-card{padding:25px}.flow-track{grid-template-columns:1fr}.ready-points{grid-template-columns:1fr}.ai-ready-box{padding:28px 22px}}
     @media(max-width:900px){.navlinks a:not(.nav-cta){display:none}.hero{grid-template-columns:1fr;padding-top:35px}.hero-img{height:430px}.booking-card{left:18px}.ai-grid,.savings-grid,.faq-grid,.contact-grid{grid-template-columns:1fr}.contact-copy{position:static}.system-steps,.product-grid,.delivery-grid{grid-template-columns:1fr}.system-step:not(:last-child):after{display:none}.product-card.featured{transform:none}.delivery-proof-top{align-items:flex-start;flex-direction:column}.logo-grid{grid-template-columns:repeat(3,1fr)}.follow-grid{grid-template-columns:1fr}.hero{gap:60px}}
     @media(max-width:600px){.wrap{width:min(100% - 28px,1160px)}.nav{height:70px}.nav .brand{padding:4px 6px}.nav .logo-crop{width:160px}.nav .btn{min-height:42px;padding:0 12px;font-size:12px}.hero{min-height:auto;padding:40px 0 65px}h1{font-size:43px}.hero-copy>p{font-size:17px}.hero-actions{align-items:stretch;flex-direction:column}.hero-actions .btn,.hero-actions .text-link{width:100%;text-align:center}.micro{flex-direction:column;gap:8px}.hero-img{height:360px;object-position:62% 50%}.booking-card{width:235px;left:12px;bottom:14px}.hero-visual:before{display:none}.ps-inner{grid-template-columns:1fr}.ps-item{grid-template-columns:1fr;gap:8px;padding:20px 0}.ps-item+.ps-item{margin-left:0;padding-left:0;border-left:0;border-top:1px solid var(--line)}.ps-label{justify-self:start}section{padding:66px 0}.system-steps,.product-grid{gap:12px}.system-step,.product-card{padding:25px}.ai-list{grid-template-columns:1fr}.ai-demo{padding:18px}.ai-demo:before{display:none}.calculator{padding:25px 20px}.calc-label{align-items:flex-start;flex-direction:column;gap:7px}.logo-grid{grid-template-columns:repeat(2,1fr)}.logo-tile{min-height:68px;font-size:13px}.phone{min-height:400px}.delivery-proof{padding:24px 20px}.delivery-proof-top{gap:12px}.delivery-grid{gap:18px}.form-row{grid-template-columns:1fr}.cta{padding:70px 0}.contact-grid{gap:36px}.contact-form{padding:25px 20px}.footer-main,.footer-bottom{flex-direction:column}.footer-main{align-items:center}.footer-main .brand{margin-inline:auto}.footer-bottom{align-items:flex-start}.footer-main .btn{width:100%}}
   </style>
@@ -33,7 +39,7 @@
   <header>
     <nav class="nav wrap" aria-label="Main navigation">
       <a class="brand" href="#top" aria-label="GainBookings home"><span class="logo-crop"><img src="assets/gain-bookings-logo.png" alt="GainBookings"></span></a>
-      <div class="navlinks"><a href="#system">System</a><a href="#focier-demo">AI Demo</a><a href="#savings">Savings</a><a href="#products">Pricing</a><a class="btn btn-primary nav-cta" href="#contact">Free booking audit</a></div>
+      <div class="navlinks"><a href="#system">System</a><a href="#focier-demo">AI Demo</a><a href="#savings">Savings</a><a href="#ai-ready">AI-ready</a><a href="#products">Pricing</a><a class="btn btn-primary nav-cta" href="#contact">Free booking audit</a></div>
     </nav>
     <div class="hero wrap" id="top">
       <div class="hero-copy">
@@ -58,6 +64,31 @@
   </aside>
 
   <main>
+
+    <section class="before-after" id="difference">
+      <div class="wrap">
+        <div class="section-head center"><div class="kicker">The difference</div><h2>Turn a website into a booking system.</h2><p>The goal is not simply a better-looking website. It is a clearer path from traveler interest to direct reservation.</p></div>
+        <div class="ba-grid">
+          <article class="ba-card"><span class="ps-label">WITHOUT A SYSTEM</span><h3>Interest gets stuck.</h3><p>A traveler visits, has a question, gets distracted, or leaves without completing the next step.</p><ul class="ba-list"><li>Slow or unanswered questions</li><li>Unclear booking path</li><li>Leads disappear after the visit</li><li>More dependence on third-party channels</li></ul></article>
+          <div class="ba-arrow" aria-hidden="true">→</div>
+          <article class="ba-card after"><span class="product-tag">WITH GAINBOOKINGS</span><h3>Interest keeps moving.</h3><p>Your website, AI concierge, booking flow, and follow-up work together around the actions that lead toward a direct reservation.</p><ul class="ba-list"><li>Fast answers to approved questions</li><li>Clear experience and booking path</li><li>Qualified leads captured and followed up</li><li>Direct booking and human handoff</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="mobile-flow" id="booking-flow">
+      <div class="wrap">
+        <div class="section-head center"><div class="kicker">The customer journey</div><h2>From first click to confirmed booking.</h2><p>Every step has one job: make the next action obvious and reduce friction.</p></div>
+        <div class="flow-track">
+          <article class="flow-card"><div class="flow-icon">01</div><h3>Visitor arrives</h3><p>Mobile-first pages make the experience, price, proof, and next step easy to understand.</p></article>
+          <article class="flow-card"><div class="flow-icon">02</div><h3>AI answers</h3><p>Focier AI handles approved questions and helps the traveler choose the right experience.</p></article>
+          <article class="flow-card"><div class="flow-icon">03</div><h3>Traveler chooses</h3><p>The customer reaches the relevant availability, booking, or payment path without unnecessary steps.</p></article>
+          <article class="flow-card"><div class="flow-icon">04</div><h3>Booking confirmed</h3><p>The reservation is completed through the agreed direct booking flow, with human support when needed.</p></article>
+        </div>
+        <p class="flow-caption">Built to work especially well on mobile, where travelers can discover, ask, compare, and book from the same device.</p>
+      </div>
+    </section>
+
     <section class="booking-system" id="system">
       <div class="wrap">
         <div class="section-head center"><div class="kicker">From website visit to confirmed booking</div><h2>A complete booking system in three steps.</h2><p>Every visitor is a potential booking opportunity. The system helps you earn their attention, answer at the right moment, and move qualified travelers toward booking directly.</p></div>
@@ -119,6 +150,21 @@
         <div class="section-head center"><div class="kicker" style="color:var(--gold)">Compatible integrations</div><h2>Works smoothly with your favorite tools.</h2><p>We review your current stack and confirm the right connection plan before implementation.</p></div>
         <div class="logo-grid" aria-label="Compatible platforms"><div class="logo-tile">FareHarbor</div><div class="logo-tile">Checkfront</div><div class="logo-tile">Bókun</div><div class="logo-tile">ResNexus</div><div class="logo-tile">Rezdy</div><div class="logo-tile">Peek Pro</div><div class="logo-tile">Xola</div><div class="logo-tile">Shopify</div><div class="logo-tile">Stripe</div><div class="logo-tile">PayPal</div><div class="logo-tile">Square</div><div class="logo-tile">HubSpot</div><div class="logo-tile">Mailchimp</div></div>
         <p class="integration-note">Integration availability and depth depend on each provider’s API, account plan, permissions, and technical requirements.</p>
+      </div>
+    </section>
+
+
+    <section class="ai-ready" id="ai-ready">
+      <div class="wrap">
+        <div class="ai-ready-box">
+          <div><span class="ready-badge">AI-ready website</span><h2>Make your experiences easier for modern search to understand.</h2><p>GainBookings structures your core experience information—what you offer, where you operate, who it is for, and how travelers can book—so your content is clear for search engines and emerging AI discovery experiences.</p></div>
+          <div class="ready-points">
+            <div class="ready-point"><strong>Clear experience data</strong><span>Services, locations, pricing, inclusions, and booking details presented consistently.</span></div>
+            <div class="ready-point"><strong>Strong page structure</strong><span>Useful headings, metadata, internal links, and focused experience pages.</span></div>
+            <div class="ready-point"><strong>Traveler intent</strong><span>Content organized around the questions customers actually ask before booking.</span></div>
+            <div class="ready-point"><strong>Direct next step</strong><span>Every important experience has a clear path toward inquiry, availability, or booking.</span></div>
+          </div>
+        </div>
       </div>
     </section>
 
