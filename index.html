@@ -263,23 +263,26 @@
       demoTour.textContent=content.tour;
     }));
   
+    document.addEventListener('DOMContentLoaded',()=>{
     const conciergeLauncher=document.getElementById('concierge-launcher');
-    const conciergePanel=document.getElementById('concierge-panel');
-    const conciergeClose=document.getElementById('concierge-close');
-    const conciergeMessages=document.getElementById('concierge-messages');
-    const conciergeInput=document.getElementById('concierge-input');
-    const conciergeSend=document.getElementById('concierge-send');
-    const conciergeHistory=[];
-    function openConcierge(){conciergePanel.classList.add('open');conciergePanel.setAttribute('aria-hidden','false');conciergeLauncher.setAttribute('aria-expanded','true');setTimeout(()=>conciergeInput.focus(),80)}
-    function closeConcierge(){conciergePanel.classList.remove('open');conciergePanel.setAttribute('aria-hidden','true');conciergeLauncher.setAttribute('aria-expanded','false')}
-    function addConciergeMessage(text,type){const el=document.createElement('div');el.className='concierge-msg '+type;el.textContent=text;conciergeMessages.appendChild(el);conciergeMessages.scrollTop=conciergeMessages.scrollHeight}
-    function addTyping(){const el=document.createElement('div');el.className='concierge-msg ai';el.id='concierge-typing';el.textContent='Thinking…';conciergeMessages.appendChild(el);conciergeMessages.scrollTop=conciergeMessages.scrollHeight}
-    async function sendConciergeMessage(text){const clean=text.trim();if(!clean||conciergeSend.disabled)return;openConcierge();conciergeInput.value='';addConciergeMessage(clean,'user');conciergeHistory.push({role:'user',content:clean});conciergeSend.disabled=true;addTyping();try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conciergeHistory})});const data=await response.json();document.getElementById('concierge-typing')?.remove();if(!response.ok)throw new Error(data.error||'AI unavailable');const answer=data.answer||'I can help with that. Please use the free booking audit form on this page and we’ll take it from there.';addConciergeMessage(answer,'ai');conciergeHistory.push({role:'assistant',content:answer})}catch(error){document.getElementById('concierge-typing')?.remove();addConciergeMessage('I’m having trouble connecting right now. You can still use the free booking audit form below and our team will reply personally.','ai')}finally{conciergeSend.disabled=false;conciergeInput.focus()}}
-    conciergeLauncher.addEventListener('click',()=>conciergePanel.classList.contains('open')?closeConcierge():openConcierge());
-    conciergeClose.addEventListener('click',closeConcierge);
-    conciergeSend.addEventListener('click',()=>sendConciergeMessage(conciergeInput.value));
-    conciergeInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendConciergeMessage(conciergeInput.value)}});
-    document.querySelectorAll('.concierge-quick button').forEach(btn=>btn.addEventListener('click',()=>sendConciergeMessage(btn.dataset.q)));
+      const conciergePanel=document.getElementById('concierge-panel');
+      const conciergeClose=document.getElementById('concierge-close');
+      const conciergeMessages=document.getElementById('concierge-messages');
+      const conciergeInput=document.getElementById('concierge-input');
+      const conciergeSend=document.getElementById('concierge-send');
+      const conciergeHistory=[];
+      function openConcierge(){conciergePanel.classList.add('open');conciergePanel.setAttribute('aria-hidden','false');conciergeLauncher.setAttribute('aria-expanded','true');setTimeout(()=>conciergeInput.focus(),80)}
+      function closeConcierge(){conciergePanel.classList.remove('open');conciergePanel.setAttribute('aria-hidden','true');conciergeLauncher.setAttribute('aria-expanded','false')}
+      function addConciergeMessage(text,type){const el=document.createElement('div');el.className='concierge-msg '+type;el.textContent=text;conciergeMessages.appendChild(el);conciergeMessages.scrollTop=conciergeMessages.scrollHeight}
+      function addTyping(){const el=document.createElement('div');el.className='concierge-msg ai';el.id='concierge-typing';el.textContent='Thinking…';conciergeMessages.appendChild(el);conciergeMessages.scrollTop=conciergeMessages.scrollHeight}
+      async function sendConciergeMessage(text){const clean=text.trim();if(!clean||conciergeSend.disabled)return;openConcierge();conciergeInput.value='';addConciergeMessage(clean,'user');conciergeHistory.push({role:'user',content:clean});conciergeSend.disabled=true;addTyping();try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conciergeHistory})});const data=await response.json();document.getElementById('concierge-typing')?.remove();if(!response.ok)throw new Error(data.error||'AI unavailable');const answer=data.answer||'I can help with that. Please use the free booking audit form on this page and we’ll take it from there.';addConciergeMessage(answer,'ai');conciergeHistory.push({role:'assistant',content:answer})}catch(error){document.getElementById('concierge-typing')?.remove();addConciergeMessage('I’m having trouble connecting right now. You can still use the free booking audit form below and our team will reply personally.','ai')}finally{conciergeSend.disabled=false;conciergeInput.focus()}}
+      conciergeLauncher.addEventListener('click',()=>conciergePanel.classList.contains('open')?closeConcierge():openConcierge());
+      conciergeClose.addEventListener('click',closeConcierge);
+      conciergeSend.addEventListener('click',()=>sendConciergeMessage(conciergeInput.value));
+      conciergeInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendConciergeMessage(conciergeInput.value)}});
+      document.querySelectorAll('.concierge-quick button').forEach(btn=>btn.addEventListener('click',()=>sendConciergeMessage(btn.dataset.q)));
+  
+    });
   </script>
 
   <button class="concierge-launcher" id="concierge-launcher" type="button" aria-expanded="false" aria-controls="concierge-panel"><span class="concierge-launcher-icon">✦</span><span>Ask GainBookings AI</span></button>
