@@ -262,18 +262,7 @@
       demoAnswer.textContent=content.answer;
       demoTour.textContent=content.tour;
     }));
-  </script>
-
-  <button class="concierge-launcher" id="concierge-launcher" type="button" aria-expanded="false" aria-controls="concierge-panel"><span class="concierge-launcher-icon">✦</span><span>Ask GainBookings AI</span></button>
-  <section class="concierge-panel" id="concierge-panel" aria-label="GainBookings AI Concierge" aria-hidden="true">
-    <div class="concierge-head"><div class="concierge-head-main"><span class="concierge-avatar">✦</span><div><strong>GainBookings AI Concierge</strong><small>Ask about direct bookings, AI &amp; our system</small></div></div><button class="concierge-close" id="concierge-close" type="button" aria-label="Close">×</button></div>
-    <div class="concierge-messages" id="concierge-messages"><div class="concierge-msg ai">Hi! I’m the GainBookings AI Concierge. I can explain how the system works, answer questions, or help you figure out what could improve your direct bookings. What are you trying to improve?</div></div>
-    <div class="concierge-quick"><button type="button" data-q="What exactly does GainBookings do?">What do you do?</button><button type="button" data-q="How can AI help me get more direct bookings?">How can AI help?</button><button type="button" data-q="How much does GainBookings cost?">Pricing</button><button type="button" data-q="I want a free booking audit. What do I do next?">Free audit</button></div>
-    <div class="concierge-input"><textarea id="concierge-input" rows="1" placeholder="Ask me anything about GainBookings…"></textarea><button class="concierge-send" id="concierge-send" type="button" aria-label="Send">↑</button></div>
-    <div class="concierge-note">AI assistant · For a proposal or audit, use the form on this page.</div>
-  </section>
-</body>
-</html>
+  
     const conciergeLauncher=document.getElementById('concierge-launcher');
     const conciergePanel=document.getElementById('concierge-panel');
     const conciergeClose=document.getElementById('concierge-close');
@@ -291,4 +280,15 @@
     conciergeSend.addEventListener('click',()=>sendConciergeMessage(conciergeInput.value));
     conciergeInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendConciergeMessage(conciergeInput.value)}});
     document.querySelectorAll('.concierge-quick button').forEach(btn=>btn.addEventListener('click',()=>sendConciergeMessage(btn.dataset.q)));
+  </script>
 
+  <button class="concierge-launcher" id="concierge-launcher" type="button" aria-expanded="false" aria-controls="concierge-panel"><span class="concierge-launcher-icon">✦</span><span>Ask GainBookings AI</span></button>
+  <section class="concierge-panel" id="concierge-panel" aria-label="GainBookings AI Concierge" aria-hidden="true">
+    <div class="concierge-head"><div class="concierge-head-main"><span class="concierge-avatar">✦</span><div><strong>GainBookings AI Concierge</strong><small>Ask about direct bookings, AI &amp; our system</small></div></div><button class="concierge-close" id="concierge-close" type="button" aria-label="Close">×</button></div>
+    <div class="concierge-messages" id="concierge-messages"><div class="concierge-msg ai">Hi! I’m the GainBookings AI Concierge. I can explain how the system works, answer questions, or help you figure out what could improve your direct bookings. What are you trying to improve?</div></div>
+    <div class="concierge-quick"><button type="button" data-q="What exactly does GainBookings do?">What do you do?</button><button type="button" data-q="How can AI help me get more direct bookings?">How can AI help?</button><button type="button" data-q="How much does GainBookings cost?">Pricing</button><button type="button" data-q="I want a free booking audit. What do I do next?">Free audit</button></div>
+    <div class="concierge-input"><textarea id="concierge-input" rows="1" placeholder="Ask me anything about GainBookings…"></textarea><button class="concierge-send" id="concierge-send" type="button" aria-label="Send">↑</button></div>
+    <div class="concierge-note">AI assistant · For a proposal or audit, use the form on this page.</div>
+  </section>
+</body>
+</html>
