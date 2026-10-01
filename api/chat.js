@@ -1,3 +1,69 @@
+import pg from 'pg';
+
+const { Pool } = pg;
+
+let pool;
+
+function getPool() {
+  if (!process.env.POSTGRES_URL) throw new Error('Database is not configured.');
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.POSTGRES_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 3,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 10000
+    });
+  }
+  return pool;
+}
+
+async function ensureSchema() {
+  const db = getPool();
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS ai_conversations (
+      id UUID PRIMARY KEY,
+      visitor_id TEXT,
+      page_url TEXT,
+      language TEXT,
+      name TEXT,
+      email TEXT,
+      business TEXT,
+      status TEXT NOT NULL DEFAULT 'new',
+      lead_intent TEXT NOT NULL DEFAULT 'unknown',
+      audit_requested BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS ai_messages (
+      id BIGSERIAL PRIMARY KEY,
+      conversation_id UUID NOT NULL REFERENCES ai_conversations(id) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK (role IN ('user','assistant')),
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS ai_conversations_updated_at_idx ON ai_conversations(updated_at DESC);
+    CREATE INDEX IF NOT EXISTS ai_messages_conversation_id_idx ON ai_messages(conversation_id, created_at);
+  `);
+}
+
+function clean(value, max = 500) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+function uuid() {
+  return crypto.randomUUID();
+}
+
+function extractLeadSignals(messages) {
+  const text = messages.filter(m => m.role === 'user').map(m => m.content).join(' ').toLowerCase();
+  const auditRequested = /free (15[- ]?minute )?audit|booking audit|free audit|audit request|auditor[ií]a gratis/.test(text);
+  const buying = /price|pricing|cost|quote|proposal|buy|purchase|book|start|interested|monthly|how much|precio|coste|cotiz|propuesta|comprar|contratar|reservar|interesado|mensual|quanto|prezzo|preventivo|acquistare/.test(text);
+  const status = auditRequested ? 'audit_requested' : buying ? 'qualified' : 'new';
+  const leadIntent = auditRequested ? 'audit_requested' : buying ? 'buying_intent' : 'unknown';
+  return { auditRequested, status, leadIntent };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -10,21 +76,49 @@ export default async function handler(req, res) {
     return;
   }
 
+  let db;
   try {
     const body = req.body || {};
     const incoming = Array.isArray(body.messages) ? body.messages : [];
+    const conversationId = clean(body.conversationId, 80) || uuid();
+    const visitorId = clean(body.visitorId, 120);
+    const pageUrl = clean(body.pageUrl, 1000);
+    const language = clean(body.language, 20);
 
     const messages = incoming
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
       .slice(-12)
-      .map((m) => ({
-        role: m.role,
-        content: m.content.slice(0, 2500)
-      }));
+      .map((m) => ({ role: m.role, content: m.content.slice(0, 2500) }));
 
     if (!messages.length) {
       res.status(400).json({ error: 'No messages provided.' });
       return;
+    }
+
+    db = getPool();
+    await ensureSchema();
+
+    const { status, leadIntent, auditRequested } = extractLeadSignals(messages);
+    await db.query(
+      `INSERT INTO ai_conversations (id, visitor_id, page_url, language, status, lead_intent, audit_requested)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       ON CONFLICT (id) DO UPDATE SET
+         visitor_id=COALESCE(NULLIF(EXCLUDED.visitor_id,''),ai_conversations.visitor_id),
+         page_url=COALESCE(NULLIF(EXCLUDED.page_url,''),ai_conversations.page_url),
+         language=COALESCE(NULLIF(EXCLUDED.language,''),ai_conversations.language),
+         status=CASE WHEN EXCLUDED.status <> 'new' THEN EXCLUDED.status ELSE ai_conversations.status END,
+         lead_intent=CASE WHEN EXCLUDED.lead_intent <> 'unknown' THEN EXCLUDED.lead_intent ELSE ai_conversations.lead_intent END,
+         audit_requested=ai_conversations.audit_requested OR EXCLUDED.audit_requested,
+         updated_at=NOW()`,
+      [conversationId, visitorId, pageUrl, language, status, leadIntent, auditRequested]
+    );
+
+    const latestUser = [...messages].reverse().find(m => m.role === 'user');
+    if (latestUser) {
+      await db.query(
+        'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
+        [conversationId, 'user', latestUser.content]
+      );
     }
 
     const system = `You are the GainBookings AI Concierge, a helpful B2B sales assistant for GainBookings.
@@ -75,7 +169,13 @@ Your goals:
       return;
     }
 
-    res.status(200).json({ answer });
+    await db.query(
+      'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
+      [conversationId, 'assistant', answer]
+    );
+    await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
+
+    res.status(200).json({ answer, conversationId });
   } catch (error) {
     console.error('AI concierge error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
