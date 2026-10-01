@@ -99,6 +99,9 @@ export default async function handler(req, res) {
     await ensureSchema();
 
     const { status, leadIntent, auditRequested } = extractLeadSignals(messages);
+    const previous = await db.query('SELECT status, audit_requested FROM ai_conversations WHERE id=$1',[conversationId]);
+    const previousStatus = previous.rows[0]?.status || 'new';
+    const previousAudit = Boolean(previous.rows[0]?.audit_requested);
     await db.query(
       `INSERT INTO ai_conversations (id, visitor_id, page_url, language, status, lead_intent, audit_requested)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -174,6 +177,38 @@ Your goals:
       [conversationId, 'assistant', answer]
     );
     await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
+
+    const shouldNotify = (auditRequested && !previousAudit) || (leadIntent === 'buying_intent' && previousStatus === 'new');
+    if (shouldNotify && process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+      const subject = auditRequested ? 'New GainBookings AI audit request' : 'New GainBookings AI buying intent';
+      const text = [
+        subject,
+        '',
+        'Conversation: ' + conversationId,
+        'Language: ' + (language || 'unknown'),
+        'Page: ' + (pageUrl || 'unknown'),
+        'Lead intent: ' + leadIntent,
+        'Audit requested: ' + (auditRequested ? 'Yes' : 'No'),
+        '',
+        'Latest visitor message:',
+        latestUser?.content || ''
+      ].join('\\n');
+      try {
+        await fetch('https://api.resend.com/emails', {
+          method:'POST',
+          headers:{'Authorization':'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({
+            from:process.env.RESEND_FROM_EMAIL,
+            to:[process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'],
+            subject,
+            text,
+            reply_to:process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'
+          })
+        });
+      } catch (emailError) {
+        console.error('Lead notification error:', emailError);
+      }
+    }
 
     res.status(200).json({ answer, conversationId });
   } catch (error) {
