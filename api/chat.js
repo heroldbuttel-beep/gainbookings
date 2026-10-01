@@ -5,10 +5,20 @@ const { Pool } = pg;
 let pool;
 
 function getPool() {
-  if (!process.env.POSTGRES_URL) throw new Error('Database is not configured.');
+  const raw = process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
+  if (!raw) throw new Error('Database is not configured.');
   if (!pool) {
+    let connectionString = raw;
+    try {
+      const url = new URL(raw);
+      url.searchParams.delete('sslmode');
+      url.searchParams.delete('sslrootcert');
+      url.searchParams.delete('sslcert');
+      url.searchParams.delete('sslkey');
+      connectionString = url.toString();
+    } catch {}
     pool = new Pool({
-      connectionString: process.env.POSTGRES_URL,
+      connectionString,
       ssl: { rejectUnauthorized: false },
       max: 3,
       idleTimeoutMillis: 10000,
