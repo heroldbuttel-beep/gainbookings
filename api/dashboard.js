@@ -66,5 +66,8 @@ export default async function handler(req,res){
     }
     const c=await db.query('SELECT * FROM ai_conversations ORDER BY updated_at DESC LIMIT 200');
     return res.status(200).json({conversations:c.rows});
-  }catch(error){console.error('dashboard error',error);return res.status(500).json({error:'Dashboard error'});}
+  }catch(error){
+    console.error('dashboard error',error);
+    return res.status(500).json({error:'Dashboard database error',detail:process.env.NODE_ENV==='production'?'Database connection or query failed.':String(error?.message||error)});
+  }
 }
