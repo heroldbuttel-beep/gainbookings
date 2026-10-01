@@ -15,10 +15,12 @@ function bodyOf(req){
   return {};
 }
 function authorized(req){
-  const expected=process.env.DASHBOARD_PASSWORD;
+  const expected=(process.env.DASHBOARD_PASSWORD||'').trim();
   if(!expected) return false;
-  const supplied=bodyOf(req).password;
-  return typeof supplied==='string' && supplied.length>0 && supplied===expected;
+  const body=bodyOf(req);
+  const supplied=typeof body.password==='string' ? body.password.trim() : '';
+  const header=typeof req.headers['x-dashboard-password']==='string' ? req.headers['x-dashboard-password'].trim() : '';
+  return (supplied.length>0 && supplied===expected) || (header.length>0 && header===expected);
 }
 async function schema(db){
   await db.query(`
@@ -35,7 +37,7 @@ async function schema(db){
 }
 export default async function handler(req,res){
   if(req.method==='GET' && req.query?.check==='1'){
-    return res.status(200).json({configured:Boolean(process.env.DASHBOARD_PASSWORD)});
+    return res.status(200).json({configured:Boolean(process.env.DASHBOARD_PASSWORD),length:(process.env.DASHBOARD_PASSWORD||'').trim().length});
   }
   if(req.method==='GET'){
     return res.status(405).json({error:'Use dashboard access form'});
