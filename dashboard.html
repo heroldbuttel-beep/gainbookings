@@ -26,11 +26,11 @@ body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#11213a}.wra
 <script>
 let auth='';
 const $=id=>document.getElementById(id);
-async function request(url,options={}){return fetch(url,{...options,headers:{...(options.headers||{}),Authorization:'Basic '+btoa('dashboard:'+auth)}})}
+async function request(url,options={}){return fetch(url,{...options,headers:{...(options.headers||{}),'X-Dashboard-Password':auth}})}
 async function login(){
  auth=$('password').value;
  const r=await request('/api/dashboard');
- if(!r.ok){$('loginError').textContent='Incorrect password or dashboard unavailable.';return}
+ if(!r.ok){$('loginError').textContent='Access denied or dashboard unavailable.';return}
  $('login').classList.add('hidden');$('app').classList.remove('hidden');render(await r.json());
 }
 async function render(data){
