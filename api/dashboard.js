@@ -39,6 +39,11 @@ export default async function handler(req,res){
   if(req.method==='GET' && req.query?.check==='1'){
     return res.status(200).json({configured:Boolean(process.env.DASHBOARD_PASSWORD),length:(process.env.DASHBOARD_PASSWORD||'').trim().length});
   }
+  if(req.method==='POST' && req.query?.check==='2'){
+    const expected=(process.env.DASHBOARD_PASSWORD||'').trim();
+    const supplied=typeof bodyOf(req).password==='string' ? bodyOf(req).password.trim() : '';
+    return res.status(200).json({configured:Boolean(expected),expectedLength:expected.length,suppliedLength:supplied.length,matches:Boolean(expected)&&supplied===expected});
+  }
   if(req.method==='GET'){
     return res.status(405).json({error:'Use dashboard access form'});
   }
