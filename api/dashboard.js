@@ -27,6 +27,9 @@ async function schema(db){
   `);
 }
 export default async function handler(req,res){
+  if(req.method==='GET' && req.query?.check==='1'){
+    return res.status(200).json({configured:Boolean(process.env.DASHBOARD_PASSWORD)});
+  }
   if(!authorized(req)){return res.status(401).json({error:'Unauthorized'});}
   try{
     const db=getPool(); await schema(db);
