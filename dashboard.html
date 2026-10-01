@@ -33,9 +33,31 @@ async function request(url,options={}){
 }
 async function login(){
  auth=$('password').value;
- const r=await request('/api/dashboard');
- if(!r.ok){let msg='Access denied or dashboard unavailable.';try{const e=await r.json();msg=e.detail||e.error||msg}catch{}$('loginError').textContent=msg;return}
- $('login').classList.add('hidden');$('app').classList.remove('hidden');render(await r.json());
+ $('loginError').textContent='Checking secure connection…';
+ try{
+  const check=await request('/api/dashboard?check=2');
+  const checkData=await check.json();
+  if(!check.ok || !checkData.matches){
+   $('loginError').textContent='The password entered does not match the password saved in Vercel.';
+   return;
+  }
+  const dbCheck=await request('/api/dashboard?check=3');
+  const dbData=await dbCheck.json();
+  if(!dbCheck.ok){
+   $('loginError').textContent=dbData.detail||dbData.error||'Database connection failed.';
+   return;
+  }
+  const r=await request('/api/dashboard');
+  if(!r.ok){
+   let msg='Dashboard unavailable.';
+   try{const e=await r.json();msg=e.detail||e.error||msg}catch{}
+   $('loginError').textContent=msg;
+   return;
+  }
+  $('login').classList.add('hidden');$('app').classList.remove('hidden');render(await r.json());
+ }catch(error){
+  $('loginError').textContent='Could not connect to the dashboard. Please try again.';
+ }
 }
 async function render(data){
  $('count').textContent=data.conversations.length+' conversation'+(data.conversations.length===1?'':'s');
