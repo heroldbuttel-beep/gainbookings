@@ -44,6 +44,20 @@ export default async function handler(req,res){
     const supplied=typeof bodyOf(req).password==='string' ? bodyOf(req).password.trim() : '';
     return res.status(200).json({configured:Boolean(expected),expectedLength:expected.length,suppliedLength:supplied.length,matches:Boolean(expected)&&supplied===expected});
   }
+  if(req.method==='POST' && req.query?.check==='3'){
+    if(!authorized(req)) return res.status(401).json({error:'Unauthorized'});
+    try{
+      const db=getPool();
+      const result=await db.query('SELECT NOW() AS now');
+      return res.status(200).json({ok:true,databaseTime:result.rows[0]?.now||null});
+    }catch(error){
+      console.error('dashboard db check error',error);
+      return res.status(500).json({
+        error:'Database connection failed',
+        detail:String(error?.message||error).replace(/postgres(?:ql)?:\/\/[^\s]+/gi,'postgresql://[hidden]')
+      });
+    }
+  }
   if(req.method==='GET'){
     return res.status(405).json({error:'Use dashboard access form'});
   }
