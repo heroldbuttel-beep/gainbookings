@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GainBookings Lead Dashboard</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#11213a}.wrap{max-width:1180px;margin:0 auto;padding:28px 18px}header{background:#07172f;color:#fff;padding:24px 0}h1{margin:0;font-size:28px}header p{margin:6px 0 0;color:#b9c8d8}.card{background:#fff;border:1px solid #dfe5e8;border-radius:14px;padding:18px;margin-top:18px}.login{max-width:420px;margin:70px auto}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{margin-bottom:12px}.field label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd5dc;border-radius:8px}.btn{border:0;border-radius:8px;padding:11px 16px;background:#ff7657;color:#fff;font-weight:700;cursor:pointer}.muted{color:#667589;font-size:13px}.hidden{display:none}.leads{display:grid;gap:10px}.lead{border:1px solid #e1e6eb;border-radius:10px;padding:14px;cursor:pointer}.lead:hover{background:#fafbfd}.lead-top{display:flex;justify-content:space-between;gap:10px}.pill{font-size:11px;font-weight:800;padding:5px 8px;border-radius:99px;background:#e8fbf6;color:#087765}.detail pre{white-space:pre-wrap;word-break:break-word;font:14px/1.55 Arial}.msg{padding:10px 12px;border-radius:9px;margin:8px 0}.user{background:#eef2f6}.assistant{background:#e8fbf6}.status{padding:8px;border-radius:7px;border:1px solid #ccd5dc}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>GainBookings Lead Dashboard</h1><p>Private AI Concierge conversations and qualified opportunities.</p></div></header>
+<main class="wrap">
+<section id="login" class="card login">
+<h2>Private access</h2><p class="muted">Enter the dashboard password. It is used only for this session.</p>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password"></div>
+<button class="btn" id="loginBtn">Open dashboard</button><p id="loginError" class="muted"></p>
+</section>
+<section id="app" class="hidden">
+<div class="card"><div class="lead-top"><div><strong id="count">0 conversations</strong><div class="muted">Newest activity first</div></div><button class="btn" id="refresh">Refresh</button></div></div>
+<div class="row">
+<div class="card"><h2>Leads</h2><div id="leads" class="leads"></div></div>
+<div class="card detail"><h2>Conversation</h2><div id="detail" class="muted">Select a conversation.</div></div>
+</div>
+</section>
+</main>
+<script>
+let auth='';
+const $=id=>document.getElementById(id);
+async function request(url,options={}){return fetch(url,{...options,headers:{...(options.headers||{}),Authorization:'Basic '+btoa('dashboard:'+auth)}})}
+async function login(){
+ auth=$('password').value;
+ const r=await request('/api/dashboard');
+ if(!r.ok){$('loginError').textContent='Incorrect password or dashboard unavailable.';return}
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');render(await r.json());
+}
+async function render(data){
+ $('count').textContent=data.conversations.length+' conversation'+(data.conversations.length===1?'':'s');
+ $('leads').innerHTML=data.conversations.map(c=>`<div class="lead" data-id="${c.id}"><div class="lead-top"><strong>${esc(c.business||c.name||'Website visitor')}</strong><span class="pill">${esc(c.status)}</span></div><div class="muted">${fmt(c.updated_at)} · ${esc(c.lead_intent)} · ${esc(c.language||'')}</div><div>${esc(c.email||'No email captured')}</div></div>`).join('')||'<p class="muted">No AI conversations yet.</p>';
+ document.querySelectorAll('.lead').forEach(x=>x.onclick=()=>loadDetail(x.dataset.id));
+}
+async function load(){const r=await request('/api/dashboard');if(r.ok)render(await r.json());}
+async function loadDetail(id){
+ const r=await request('/api/dashboard?id='+encodeURIComponent(id)); if(!r.ok)return;
+ const d=await r.json(),c=d.conversation;
+ $('detail').innerHTML=`<p><strong>Status:</strong> <select id="status" class="status"><option>new</option><option>contacted</option><option>audit_requested</option><option>client</option></select></p><p><strong>Page:</strong> ${esc(c.page_url||'')}</p><p><strong>Language:</strong> ${esc(c.language||'')}</p><p><strong>Name:</strong> ${esc(c.name||'')}</p><p><strong>Business:</strong> ${esc(c.business||'')}</p><p><strong>Email:</strong> ${esc(c.email||'')}</p><p><strong>Intent:</strong> ${esc(c.lead_intent)} · <strong>Audit:</strong> ${c.audit_requested?'Yes':'No'}</p><hr>${d.messages.map(m=>`<div class="msg ${m.role}"><strong>${m.role==='user'?'Visitor':'AI'}</strong><pre>${esc(m.content)}</pre></div>`).join('')}`;
+ $('status').value=c.status;
+ $('status').onchange=async()=>{await request('/api/dashboard',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:$('status').value})});load();};
+}
+function fmt(v){return new Date(v).toLocaleString()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+$('loginBtn').onclick=login;$('password').onkeydown=e=>{if(e.key==='Enter')login()};$('refresh').onclick=load;
+</script>
+</body></html>
