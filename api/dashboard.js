@@ -10,7 +10,7 @@ function getPool(){
 function authorized(req){
   const expected=process.env.DASHBOARD_PASSWORD;
   if(!expected) return false;
-  const supplied=req.headers['x-dashboard-password'];
+  const supplied=req.body?.password;
   return typeof supplied==='string' && supplied===expected;
 }
 async function schema(db){
@@ -30,6 +30,9 @@ export default async function handler(req,res){
   if(req.method==='GET' && req.query?.check==='1'){
     return res.status(200).json({configured:Boolean(process.env.DASHBOARD_PASSWORD)});
   }
+  if(req.method==='GET'){
+    return res.status(405).json({error:'Use dashboard access form'});
+  }
   if(!authorized(req)){return res.status(401).json({error:'Unauthorized'});}
   try{
     const db=getPool(); await schema(db);
@@ -39,7 +42,7 @@ export default async function handler(req,res){
       await db.query('UPDATE ai_conversations SET status=$1,updated_at=NOW() WHERE id=$2',[status,id]);
       return res.status(200).json({ok:true});
     }
-    if(req.method!=='GET') return res.status(405).json({error:'Method not allowed'});
+    if(req.method!=='POST') return res.status(405).json({error:'Method not allowed'});
     const id=typeof req.query?.id==='string'?req.query.id:'';
     if(id){
       const c=await db.query('SELECT * FROM ai_conversations WHERE id=$1',[id]);
