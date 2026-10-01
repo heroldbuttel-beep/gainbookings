@@ -7,11 +7,18 @@ function getPool(){
   if(!pool) pool=new Pool({connectionString:process.env.POSTGRES_URL,ssl:{rejectUnauthorized:false},max:3,idleTimeoutMillis:10000,connectionTimeoutMillis:10000});
   return pool;
 }
+function bodyOf(req){
+  if(req.body && typeof req.body==='object') return req.body;
+  if(typeof req.body==='string'){
+    try{return JSON.parse(req.body)}catch{return {}}
+  }
+  return {};
+}
 function authorized(req){
   const expected=process.env.DASHBOARD_PASSWORD;
   if(!expected) return false;
-  const supplied=req.body?.password;
-  return typeof supplied==='string' && supplied===expected;
+  const supplied=bodyOf(req).password;
+  return typeof supplied==='string' && supplied.length>0 && supplied===expected;
 }
 async function schema(db){
   await db.query(`
@@ -37,7 +44,7 @@ export default async function handler(req,res){
   try{
     const db=getPool(); await schema(db);
     if(req.method==='PATCH'){
-      const body=req.body||{}; const id=String(body.id||''); const status=String(body.status||'');
+      const body=bodyOf(req); const id=String(body.id||''); const status=String(body.status||'');
       if(!id||!['new','contacted','audit_requested','client'].includes(status)) return res.status(400).json({error:'Invalid update'});
       await db.query('UPDATE ai_conversations SET status=$1,updated_at=NOW() WHERE id=$2',[status,id]);
       return res.status(200).json({ok:true});
