@@ -10,12 +10,8 @@ function getPool(){
 function authorized(req){
   const expected=process.env.DASHBOARD_PASSWORD;
   if(!expected) return false;
-  const header=req.headers.authorization||'';
-  if(!header.startsWith('Basic ')) return false;
-  try{
-    const decoded=Buffer.from(header.slice(6),'base64').toString('utf8');
-    return decoded.startsWith('dashboard:') && decoded.slice(10)===expected;
-  }catch{return false}
+  const supplied=req.headers['x-dashboard-password'];
+  return typeof supplied==='string' && supplied===expected;
 }
 async function schema(db){
   await db.query(`
@@ -31,7 +27,7 @@ async function schema(db){
   `);
 }
 export default async function handler(req,res){
-  if(!authorized(req)){res.setHeader('WWW-Authenticate','Basic realm="GainBookings Dashboard"');return res.status(401).json({error:'Unauthorized'});}
+  if(!authorized(req)){return res.status(401).json({error:'Unauthorized'});}
   try{
     const db=getPool(); await schema(db);
     if(req.method==='PATCH'){
