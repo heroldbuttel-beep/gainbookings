@@ -95,14 +95,22 @@ export default async function handler(req, res) {
       return;
     }
 
-    db = getPool();
-    await ensureSchema();
+    let dbReady = false;
+    let previousStatus = 'new';
+    let previousAudit = false;
+    try {
+      db = getPool();
+      await ensureSchema();
+      dbReady = true;
+      const previous = await db.query('SELECT status, audit_requested FROM ai_conversations WHERE id=$1',[conversationId]);
+      previousStatus = previous.rows[0]?.status || 'new';
+      previousAudit = Boolean(previous.rows[0]?.audit_requested);
+    } catch (dbError) {
+      console.error('Database unavailable; continuing AI response:', dbError);
+    }
 
     const { status, leadIntent, auditRequested } = extractLeadSignals(messages);
-    const previous = await db.query('SELECT status, audit_requested FROM ai_conversations WHERE id=$1',[conversationId]);
-    const previousStatus = previous.rows[0]?.status || 'new';
-    const previousAudit = Boolean(previous.rows[0]?.audit_requested);
-    await db.query(
+    if (dbReady) await db.query(
       `INSERT INTO ai_conversations (id, visitor_id, page_url, language, status, lead_intent, audit_requested)
        VALUES ($1,$2,$3,$4,$5,$6,$7)
        ON CONFLICT (id) DO UPDATE SET
@@ -117,7 +125,7 @@ export default async function handler(req, res) {
     );
 
     const latestUser = [...messages].reverse().find(m => m.role === 'user');
-    if (latestUser) {
+    if (dbReady && latestUser) {
       await db.query(
         'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
         [conversationId, 'user', latestUser.content]
@@ -172,13 +180,15 @@ Your goals:
       return;
     }
 
-    await db.query(
-      'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
-      [conversationId, 'assistant', answer]
-    );
-    await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
+    if (dbReady) {
+      await db.query(
+        'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
+        [conversationId, 'assistant', answer]
+      );
+      await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
+    }
 
-    const shouldNotify = (auditRequested && !previousAudit) || (leadIntent === 'buying_intent' && previousStatus === 'new');
+    const shouldNotify = dbReady && ((auditRequested && !previousAudit) || (leadIntent === 'buying_intent' && previousStatus === 'new'));
     if (shouldNotify && process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
       const subject = auditRequested ? 'New GainBookings AI audit request' : 'New GainBookings AI buying intent';
       const text = [
