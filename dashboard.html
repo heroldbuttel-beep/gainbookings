@@ -26,7 +26,11 @@ body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#11213a}.wra
 <script>
 let auth='';
 const $=id=>document.getElementById(id);
-async function request(url,options={}){return fetch(url,{...options,headers:{...(options.headers||{}),'X-Dashboard-Password':auth}})}
+async function request(url,options={}){
+  const headers={...(options.headers||{}),'Content-Type':'application/json'};
+  const body=options.body?options.body:JSON.stringify({password:auth});
+  return fetch(url,{...options,method:options.method||'POST',headers,body});
+}
 async function login(){
  auth=$('password').value;
  const r=await request('/api/dashboard');
