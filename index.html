@@ -38,12 +38,14 @@
     @media(max-width:600px){.wrap{width:min(100% - 28px,1160px)}.nav{height:70px}.nav .brand{padding:4px 6px}.nav .logo-crop{width:160px}.nav .btn{min-height:42px;padding:0 12px;font-size:12px}.hero{min-height:auto;padding:40px 0 65px}h1{font-size:43px}.hero-copy>p{font-size:17px}.hero-actions{align-items:stretch;flex-direction:column}.hero-actions .btn,.hero-actions .text-link{width:100%;text-align:center}.micro{flex-direction:column;gap:8px}.hero-img{height:360px;object-position:62% 50%}.booking-card{width:235px;left:12px;bottom:14px}.hero-visual:before{display:none}.ps-inner{grid-template-columns:1fr}.ps-item{grid-template-columns:1fr;gap:8px;padding:20px 0}.ps-item+.ps-item{margin-left:0;padding-left:0;border-left:0;border-top:1px solid var(--line)}.ps-label{justify-self:start}section{padding:66px 0}.system-steps,.product-grid{gap:12px}.system-step,.product-card{padding:25px}.ai-list{grid-template-columns:1fr}.ai-demo{padding:18px}.ai-demo:before{display:none}.calculator{padding:25px 20px}.calc-label{align-items:flex-start;flex-direction:column;gap:7px}.logo-grid{grid-template-columns:repeat(2,1fr)}.logo-tile{min-height:68px;font-size:13px}.phone{min-height:400px}.delivery-proof{padding:24px 20px}.delivery-proof-top{gap:12px}.delivery-grid{gap:18px}.form-row{grid-template-columns:1fr}.cta{padding:70px 0}.contact-grid{gap:36px}.contact-form{padding:25px 20px}.footer-main,.footer-bottom{flex-direction:column}.footer-main{align-items:center}.footer-main .brand{margin-inline:auto}.footer-bottom{align-items:flex-start}.footer-main .btn{width:100%}}
       .audit-strip{background:#f7fafc;border-bottom:1px solid var(--line);border-top:1px solid #edf1f3}.audit-strip-inner{min-height:78px;display:grid;grid-template-columns:1.35fr 1fr auto;align-items:center;gap:28px}.audit-kicker{display:block;color:#15826d;font-size:11px;font-weight:800;letter-spacing:.12em;margin-bottom:4px}.audit-strip strong{font-family:"Manrope",sans-serif;font-size:17px;letter-spacing:-.02em}.audit-points{display:flex;gap:16px;flex-wrap:wrap;color:#667589;font-size:13px;font-weight:700}.audit-points span{display:flex;align-items:center;gap:6px}.audit-points span:before{content:"✓";color:#15826d;font-weight:900}.audit-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border-radius:8px;background:var(--navy);color:#fff;text-decoration:none;font-size:13px;font-weight:800;white-space:nowrap}.audit-link:hover{transform:translateY(-1px)}@media(max-width:900px){.audit-strip-inner{grid-template-columns:1fr auto;gap:12px;padding:14px 0}.audit-points{grid-column:1/-1;order:3}.audit-link{grid-column:2;grid-row:1;align-self:center}}@media(max-width:600px){.audit-strip-inner{grid-template-columns:1fr}.audit-link{grid-column:1;grid-row:auto;width:100%}.audit-points{grid-column:1;gap:10px;font-size:12px}}
 </style>
-</head>
+<style id="gain-language-switcher">
+.lang-switcher{display:flex;align-items:center;gap:6px;margin-left:4px}.lang-btn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);color:#cbd7e6;border-radius:7px;padding:7px 9px;font:700 12px/1 "DM Sans",sans-serif;cursor:pointer}.lang-btn:hover,.lang-btn.active{background:#fff;color:#07172f}.goog-te-banner-frame.skiptranslate,.goog-te-gadget-icon{display:none!important}body{top:0!important}.goog-tooltip,.goog-tooltip:hover{display:none!important}.goog-text-highlight{background:transparent!important;box-shadow:none!important}.goog-te-gadget{font-size:0!important}.goog-te-combo{display:none!important}@media(max-width:760px){.nav{height:auto;min-height:76px;padding:10px 0;flex-wrap:wrap}.navlinks{order:3;width:100%;justify-content:center;gap:16px;flex-wrap:wrap}.lang-switcher{margin-left:auto}.lang-btn{padding:7px 8px}}
+</style></head>
 <body>
   <header>
     <nav class="nav wrap" aria-label="Main navigation">
       <a class="brand" href="#top" aria-label="GainBookings home"><span class="logo-crop"><img src="assets/gain-bookings-logo.png" alt="GainBookings"></span></a>
-      <div class="navlinks"><a href="#system">System</a><a href="#focier-demo">AI Demo</a><a href="#savings">Savings</a><a href="#ai-ready">AI-ready</a><a href="#products">Pricing</a></div>
+      <div class="lang-switcher" aria-label="Language selector"><button class="lang-btn active" data-lang="en" type="button">EN</button><button class="lang-btn" data-lang="es" type="button">ES</button><button class="lang-btn" data-lang="it" type="button">IT</button></div><div class="navlinks"><a href="#system">System</a><a href="#focier-demo">AI Demo</a><a href="#savings">Savings</a><a href="#ai-ready">AI-ready</a><a href="#products">Pricing</a></div>
     </nav>
     <div class="hero wrap" id="top">
       <div class="hero-copy">
@@ -303,5 +305,14 @@
     <div class="concierge-input"><textarea id="concierge-input" rows="1" placeholder="Ask me anything about GainBookings…"></textarea><button class="concierge-send" id="concierge-send" type="button" aria-label="Send">↑</button></div>
     <div class="concierge-note">AI assistant · For a proposal or audit, use the form on this page.</div>
   </section>
-</body>
+<script>
+(function(){
+window.googleTranslateElementInit=function(){new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'en,es,it',autoDisplay:false,multilanguagePage:true},'google_translate_element');setTimeout(applySavedLanguage,500)};
+function setCookie(name,value){document.cookie=name+'='+value+';path=/;max-age=31536000'}
+function getCookie(name){var m=document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));return m?decodeURIComponent(m[1]):''}
+function applyLanguage(lang){setCookie('googtrans','/en/'+lang);document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===lang)});location.reload()}
+function applySavedLanguage(){var parts=getCookie('googtrans').split('/'),lang=parts[parts.length-1]||'en';document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===lang)})}
+document.addEventListener('DOMContentLoaded',function(){var holder=document.createElement('div');holder.id='google_translate_element';holder.style.display='none';document.body.appendChild(holder);document.querySelectorAll('.lang-btn').forEach(function(btn){btn.addEventListener('click',function(){applyLanguage(btn.dataset.lang)})});applySavedLanguage()});
+})();
+</script><script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script></body>
 </html>
