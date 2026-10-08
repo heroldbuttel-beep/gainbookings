@@ -323,7 +323,17 @@ window.googleTranslateElementInit=function(){new google.translate.TranslateEleme
 function setCookie(name,value){document.cookie=name+'='+value+';path=/;max-age=31536000'}
 function getCookie(name){var m=document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));return m?decodeURIComponent(m[1]):''}
 function applyLanguage(lang){setCookie('googtrans','/en/'+lang);document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===lang)});location.reload()}
-function applySavedLanguage(){var parts=getCookie('googtrans').split('/'),lang=parts[parts.length-1]||'en';document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===lang)})}
+function applyCurrencySymbol(lang){document.querySelectorAll('.product-price,.price-note,.pricing-note,.savings,.savings-grid').forEach(function(el){el.querySelectorAll('*').forEach(function(child){child.childNodes.forEach(function(node){if(node.nodeType===3&&node.nodeValue){var next=lang==='it'?node.nodeValue.replace(/\\$/g,'€'):node.nodeValue.replace(/€/g,'
+document.addEventListener('DOMContentLoaded',function(){var holder=document.createElement('div');holder.id='google_translate_element';holder.style.display='none';document.body.appendChild(holder);document.querySelectorAll('.lang-btn').forEach(function(btn){btn.addEventListener('click',function(){applyLanguage(btn.dataset.lang)})});applySavedLanguage()});
+})();
+</script><script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script></body>
+</html>);if(next!==node.nodeValue)node.nodeValue=next}})});el.childNodes.forEach(function(node){if(node.nodeType===3&&node.nodeValue){var next=lang==='it'?node.nodeValue.replace(/\\$/g,'€'):node.nodeValue.replace(/€/g,'
+document.addEventListener('DOMContentLoaded',function(){var holder=document.createElement('div');holder.id='google_translate_element';holder.style.display='none';document.body.appendChild(holder);document.querySelectorAll('.lang-btn').forEach(function(btn){btn.addEventListener('click',function(){applyLanguage(btn.dataset.lang)})});applySavedLanguage()});
+})();
+</script><script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script></body>
+</html>);if(next!==node.nodeValue)node.nodeValue=next}})})}
+function applySavedLanguage(){var parts=getCookie('googtrans').split('/'),lang=parts[parts.length-1]||'en';document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.dataset.lang===lang)});applyCurrencySymbol(lang)}
+new MutationObserver(function(){var parts=getCookie('googtrans').split('/'),lang=parts[parts.length-1]||'en';applyCurrencySymbol(lang)}).observe(document.body,{childList:true,subtree:true,characterData:true})
 document.addEventListener('DOMContentLoaded',function(){var holder=document.createElement('div');holder.id='google_translate_element';holder.style.display='none';document.body.appendChild(holder);document.querySelectorAll('.lang-btn').forEach(function(btn){btn.addEventListener('click',function(){applyLanguage(btn.dataset.lang)})});applySavedLanguage()});
 })();
 </script><script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script></body>
