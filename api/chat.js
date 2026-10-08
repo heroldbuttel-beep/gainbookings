@@ -28,33 +28,42 @@ function getPool() {
   return pool;
 }
 
-async function ensureSchema() {
-  const db = getPool();
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS ai_conversations (
-      id UUID PRIMARY KEY,
-      visitor_id TEXT,
-      page_url TEXT,
-      language TEXT,
-      name TEXT,
-      email TEXT,
-      business TEXT,
-      status TEXT NOT NULL DEFAULT 'new',
-      lead_intent TEXT NOT NULL DEFAULT 'unknown',
-      audit_requested BOOLEAN NOT NULL DEFAULT FALSE,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE TABLE IF NOT EXISTS ai_messages (
-      id BIGSERIAL PRIMARY KEY,
-      conversation_id UUID NOT NULL REFERENCES ai_conversations(id) ON DELETE CASCADE,
-      role TEXT NOT NULL CHECK (role IN ('user','assistant')),
-      content TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    CREATE INDEX IF NOT EXISTS ai_conversations_updated_at_idx ON ai_conversations(updated_at DESC);
-    CREATE INDEX IF NOT EXISTS ai_messages_conversation_id_idx ON ai_messages(conversation_id, created_at);
-  `);
+let schemaPromise;
+
+function ensureSchema() {
+  if (schemaPromise) return schemaPromise;
+  schemaPromise = (async () => {
+    const db = getPool();
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS ai_conversations (
+        id UUID PRIMARY KEY,
+        visitor_id TEXT,
+        page_url TEXT,
+        language TEXT,
+        name TEXT,
+        email TEXT,
+        business TEXT,
+        status TEXT NOT NULL DEFAULT 'new',
+        lead_intent TEXT NOT NULL DEFAULT 'unknown',
+        audit_requested BOOLEAN NOT NULL DEFAULT FALSE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS ai_messages (
+        id BIGSERIAL PRIMARY KEY,
+        conversation_id UUID NOT NULL REFERENCES ai_conversations(id) ON DELETE CASCADE,
+        role TEXT NOT NULL CHECK (role IN ('user','assistant')),
+        content TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS ai_conversations_updated_at_idx ON ai_conversations(updated_at DESC);
+      CREATE INDEX IF NOT EXISTS ai_messages_conversation_id_idx ON ai_messages(conversation_id, created_at);
+    `);
+  })().catch((error) => {
+    schemaPromise = null;
+    throw error;
+  });
+  return schemaPromise;
 }
 
 function clean(value, max = 500) {
@@ -105,42 +114,48 @@ export default async function handler(req, res) {
       return;
     }
 
-    let dbReady = false;
-    let previousStatus = 'new';
-    let previousAudit = false;
-    try {
-      db = getPool();
-      await ensureSchema();
-      dbReady = true;
-      const previous = await db.query('SELECT status, audit_requested FROM ai_conversations WHERE id=$1',[conversationId]);
-      previousStatus = previous.rows[0]?.status || 'new';
-      previousAudit = Boolean(previous.rows[0]?.audit_requested);
-    } catch (dbError) {
-      console.error('Database unavailable; continuing AI response:', dbError);
-    }
-
     const { status, leadIntent, auditRequested } = extractLeadSignals(messages);
-    if (dbReady) await db.query(
-      `INSERT INTO ai_conversations (id, visitor_id, page_url, language, status, lead_intent, audit_requested)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
-       ON CONFLICT (id) DO UPDATE SET
-         visitor_id=COALESCE(NULLIF(EXCLUDED.visitor_id,''),ai_conversations.visitor_id),
-         page_url=COALESCE(NULLIF(EXCLUDED.page_url,''),ai_conversations.page_url),
-         language=COALESCE(NULLIF(EXCLUDED.language,''),ai_conversations.language),
-         status=CASE WHEN EXCLUDED.status <> 'new' THEN EXCLUDED.status ELSE ai_conversations.status END,
-         lead_intent=CASE WHEN EXCLUDED.lead_intent <> 'unknown' THEN EXCLUDED.lead_intent ELSE ai_conversations.lead_intent END,
-         audit_requested=ai_conversations.audit_requested OR EXCLUDED.audit_requested,
-         updated_at=NOW()`,
-      [conversationId, visitorId, pageUrl, language, status, leadIntent, auditRequested]
-    );
-
     const latestUser = [...messages].reverse().find(m => m.role === 'user');
-    if (dbReady && latestUser) {
-      await db.query(
-        'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
-        [conversationId, 'user', latestUser.content]
-      );
-    }
+
+    // Database work starts immediately, but is deliberately kept off the critical
+    // response path so the visitor gets the AI answer as soon as OpenRouter responds.
+    const dbWork = (async () => {
+      try {
+        db = getPool();
+        await ensureSchema();
+        const previous = await db.query(
+          'SELECT status, audit_requested FROM ai_conversations WHERE id=$1',
+          [conversationId]
+        );
+        const previousStatus = previous.rows[0]?.status || 'new';
+        const previousAudit = Boolean(previous.rows[0]?.audit_requested);
+
+        await db.query(
+          `INSERT INTO ai_conversations (id, visitor_id, page_url, language, status, lead_intent, audit_requested)
+           VALUES ($1,$2,$3,$4,$5,$6,$7)
+           ON CONFLICT (id) DO UPDATE SET
+             visitor_id=COALESCE(NULLIF(EXCLUDED.visitor_id,''),ai_conversations.visitor_id),
+             page_url=COALESCE(NULLIF(EXCLUDED.page_url,''),ai_conversations.page_url),
+             language=COALESCE(NULLIF(EXCLUDED.language,''),ai_conversations.language),
+             status=CASE WHEN EXCLUDED.status <> 'new' THEN EXCLUDED.status ELSE ai_conversations.status END,
+             lead_intent=CASE WHEN EXCLUDED.lead_intent <> 'unknown' THEN EXCLUDED.lead_intent ELSE ai_conversations.lead_intent END,
+             audit_requested=ai_conversations.audit_requested OR EXCLUDED.audit_requested,
+             updated_at=NOW()`,
+          [conversationId, visitorId, pageUrl, language, status, leadIntent, auditRequested]
+        );
+
+        if (latestUser) {
+          await db.query(
+            'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
+            [conversationId, 'user', latestUser.content]
+          );
+        }
+        return { dbReady: true, previousStatus, previousAudit };
+      } catch (dbError) {
+        console.error('Database unavailable; continuing AI response:', dbError);
+        return { dbReady: false, previousStatus: 'new', previousAudit: false };
+      }
+    })();
 
     const system = `You are the GainBookings AI Concierge, a warm and capable B2B advisor for GainBookings.
 GainBookings helps tour and experience operators increase direct bookings through conversion-focused websites, GainBookings AI, and automated follow-up.
@@ -209,47 +224,59 @@ What you should do:
       return;
     }
 
-    if (dbReady) {
-      await db.query(
-        'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
-        [conversationId, 'assistant', answer]
-      );
-      await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
-    }
-
-    const shouldNotify = dbReady && ((auditRequested && !previousAudit) || (leadIntent === 'buying_intent' && previousStatus === 'new'));
-    if (shouldNotify && process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
-      const subject = auditRequested ? 'New GainBookings AI audit request' : 'New GainBookings AI buying intent';
-      const text = [
-        subject,
-        '',
-        'Conversation: ' + conversationId,
-        'Language: ' + (language || 'unknown'),
-        'Page: ' + (pageUrl || 'unknown'),
-        'Lead intent: ' + leadIntent,
-        'Audit requested: ' + (auditRequested ? 'Yes' : 'No'),
-        '',
-        'Latest visitor message:',
-        latestUser?.content || ''
-      ].join('\\n');
-      try {
-        await fetch('https://api.resend.com/emails', {
-          method:'POST',
-          headers:{'Authorization':'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json'},
-          body:JSON.stringify({
-            from:process.env.RESEND_FROM_EMAIL,
-            to:[process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'],
-            subject,
-            text,
-            reply_to:process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'
-          })
-        });
-      } catch (emailError) {
-        console.error('Lead notification error:', emailError);
-      }
-    }
-
+    // Return the AI answer immediately. Persistence and lead notification are
+    // intentionally best-effort background work and no longer delay the visitor.
     res.status(200).json({ answer, conversationId });
+
+    dbWork.then(async ({ dbReady, previousStatus, previousAudit }) => {
+      if (!dbReady) return;
+
+      try {
+        await db.query(
+          'INSERT INTO ai_messages (conversation_id, role, content) VALUES ($1,$2,$3)',
+          [conversationId, 'assistant', answer]
+        );
+        await db.query('UPDATE ai_conversations SET updated_at=NOW() WHERE id=$1', [conversationId]);
+
+        const shouldNotify = (auditRequested && !previousAudit) ||
+          (leadIntent === 'buying_intent' && previousStatus === 'new');
+
+        if (shouldNotify && process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
+          const subject = auditRequested ? 'New GainBookings AI audit request' : 'New GainBookings AI buying intent';
+          const emailText = [
+            subject,
+            '',
+            'Conversation: ' + conversationId,
+            'Language: ' + (language || 'unknown'),
+            'Page: ' + (pageUrl || 'unknown'),
+            'Lead intent: ' + leadIntent,
+            'Audit requested: ' + (auditRequested ? 'Yes' : 'No'),
+            '',
+            'Latest visitor message:',
+            latestUser?.content || ''
+          ].join('\\n');
+
+          await fetch('https://api.resend.com/emails', {
+            method:'POST',
+            headers:{
+              'Authorization':'Bearer '+process.env.RESEND_API_KEY,
+              'Content-Type':'application/json'
+            },
+            body:JSON.stringify({
+              from:process.env.RESEND_FROM_EMAIL,
+              to:[process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'],
+              subject,
+              text:emailText,
+              reply_to:process.env.LEAD_NOTIFICATION_EMAIL || 'hello@gainbookings.com'
+            })
+          });
+        }
+      } catch (backgroundError) {
+        console.error('Background lead persistence/notification error:', backgroundError);
+      }
+    }).catch((backgroundError) => {
+      console.error('Background database task error:', backgroundError);
+    });
   } catch (error) {
     console.error('AI concierge error:', error);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
