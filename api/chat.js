@@ -221,7 +221,7 @@ What you should do:
     }
 
     const models = [
-      process.env.OPENROUTER_MODEL || 'google/gemini-3-flash-preview',
+      'google/gemini-3-flash-preview',
       'openai/gpt-4o-mini'
     ];
 
