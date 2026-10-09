@@ -329,11 +329,7 @@ function applyCurrencySymbol(lang){
     nodes.forEach(function(item){
       item.childNodes.forEach(function(node){
         if(node.nodeType===3&&node.nodeValue){
-          var next=lang==='it'?node.nodeValue.replace(/\$/g,'€'):node.nodeValue.replace(/€/g,'
-document.addEventListener('DOMContentLoaded',function(){var holder=document.createElement('div');holder.id='google_translate_element';holder.style.display='none';document.body.appendChild(holder);document.querySelectorAll('.lang-btn').forEach(function(btn){btn.addEventListener('click',function(){applyLanguage(btn.dataset.lang)})});applySavedLanguage()});
-})();
-</script><script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script></body>
-</html>);
+          var next=lang==='it'?node.nodeValue.replace(/\$/g,'€'):node.nodeValue.replace(/€/g,'$');
           if(next!==node.nodeValue)node.nodeValue=next;
         }
       });
